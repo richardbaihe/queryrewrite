@@ -5,15 +5,9 @@ model=pre_train
 STEP=5000
 # self-critical?
 sc=False
-cp ${PREFIX_PATH}/outputs/*vocab ${PREFIX_PATH}/t2t/${model}
-cd ${PREFIX_PATH}/t2t/bin &&
-#rm ../${model}/model.ckpt* &&
 
-./t2t-datagen \
---data_dir=${PREFIX_PATH}/outputs/tensor2tensor/${model} \
---tmp_dir=${PREFIX_PATH}/outputs/ \
---problem=paraphrase_pretrain \
---num_shards=1
+cd ${PREFIX_PATH}/tensor2tensor/bin &&
+#rm ../${model}/model.ckpt* &&
 
 ./t2t-trainer \
 --self_critical=${sc} \
