@@ -2,18 +2,18 @@
 export CUDA_VISIBLE_DEVICES=0,1
 PREFIX_PATH=$(cd `dirname $0`; pwd)
 model=pretrain
-STEP=10000
+STEP=30000
 # self-critical?
 sc=False
 
 cd ${PREFIX_PATH}/tensor2tensor/bin &&
-rm -rf ${PREFIX_PATH}/tensor2tensor/${model} &&
-mkdir ${PREFIX_PATH}/tensor2tensor/${model}
+#rm -rf ${PREFIX_PATH}/tensor2tensor/${model} &&
+#mkdir ${PREFIX_PATH}/tensor2tensor/${model}
 
 ./t2t-trainer \
 --self_critical=${sc} \
 --worker_gpu=2 \
---hparams='batch_size=1024' \
+--hparams='batch_size=4096' \
 --data_dir=${PREFIX_PATH}/${model}/ \
 --problems=paraphrase_pretrain \
 --model=transformer \
@@ -21,7 +21,8 @@ mkdir ${PREFIX_PATH}/tensor2tensor/${model}
 --train_steps=${STEP} \
 --output_dir=${PREFIX_PATH}/tensor2tensor/${model} \
 --keep_checkpoint_max=5 \
---save_checkpoints_steps=100 \
+--save_checkpoints_steps=500 \
+--local_eval_frequency=1000
 --decode_beam_size=1 \
 --decode_batch_size=1024 \
 --decode_alpha=1.0 \
