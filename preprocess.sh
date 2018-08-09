@@ -48,8 +48,9 @@ line=$(wc -l < temp/$2.unk.txt)
 line=$((${line}/2)) &&
 head -n ${line}  ${PREFIX_PATH}/temp/$2.unk.txt > ${PREFIX_PATH}/temp/$2.unk.A &&
 tail -n ${line}  ${PREFIX_PATH}/temp/$2.unk.txt > ${PREFIX_PATH}/temp/$2.unk.B &&
-echo "build train and test set"
 
+
+echo "build train and test set for all in ./outputs/ dir"
 cat ${PREFIX_PATH}/temp/$2.unk.A ${PREFIX_PATH}/temp/$2.unk.B ${PREFIX_PATH}/temp/\
 $1.unk.A >${PREFIX_PATH}/temp/all.unk.A
 cat ${PREFIX_PATH}/temp/$2.unk.B ${PREFIX_PATH}/temp/$2.unk.A ${PREFIX_PATH}/temp/\
@@ -60,5 +61,23 @@ head -n ${line} ${PREFIX_PATH}/temp/all.unk.B >${PREFIX_PATH}/outputs/train.unk.
 tail -n 8000 ${PREFIX_PATH}/temp/all.unk.A >${PREFIX_PATH}/outputs/dev.unk.A
 tail -n 8000 ${PREFIX_PATH}/temp/all.unk.B >${PREFIX_PATH}/outputs/dev.unk.B
 
+echo "build train and test set for pretrain in ./pretrain/ dir"
+cat ${PREFIX_PATH}/temp/$2.unk.A ${PREFIX_PATH}/temp/$2.unk.B >${PREFIX_PATH}/temp/$2.unk.AB
+cat ${PREFIX_PATH}/temp/$2.unk.B ${PREFIX_PATH}/temp/$2.unk.A >${PREFIX_PATH}/temp/$2.unk.BA
+line=$(($(wc -l < temp/pretrain.unk.A)-8000)) &&
+head -n ${line} ${PREFIX_PATH}/temp/$2.unk.AB >${PREFIX_PATH}/pretrain/train.unk.A
+head -n ${line} ${PREFIX_PATH}/temp/$2.unk.BA >${PREFIX_PATH}/pretrain/train.unk.B
+tail -n 8000 ${PREFIX_PATH}/temp/$2.unk.AB >${PREFIX_PATH}/pretrain/dev.unk.A
+tail -n 8000 ${PREFIX_PATH}/temp/$2.unk.BA >${PREFIX_PATH}/pretrain/dev.unk.B
+cp ${PREFIX_PATH}/outputs/vocab.txt ${PREFIX_PATH}/pretrain/vocab.txt
+
+echo "build train and test set for query in ./rl/ dir"
+line=$(($(wc -l < temp/query.unk.A)-8000)) &&
+head -n ${line} ${PREFIX_PATH}/temp/query.unk.A >${PREFIX_PATH}/rl/train.unk.A
+head -n ${line} ${PREFIX_PATH}/temp/query.unk.B >${PREFIX_PATH}/rl/train.unk.B
+tail -n 8000 ${PREFIX_PATH}/temp/query.unk.A >${PREFIX_PATH}/rl/dev.unk.A
+tail -n 8000 ${PREFIX_PATH}/temp/query.unk.B >${PREFIX_PATH}/rl/dev.unk.B
+cp ${PREFIX_PATH}/outputs/vocab.txt ${PREFIX_PATH}/rl/vocab.txt
 echo "finished"
+
 
