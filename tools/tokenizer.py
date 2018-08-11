@@ -1,5 +1,5 @@
 import sys, re
-
+from nltk.stem import porter
 
 def tokenizer_char(txt):
     def match_num(matched):
@@ -15,11 +15,13 @@ def tokenizer_char(txt):
         else:
             return ''
     txt = txt.lower()
+    ps = porter.PorterStemmer()
     txt = re.sub(u'[!“\"#$%&\'()+,-./:;<=>?@[\]^_`{|}~，。！？、【】「」～]+', '', txt)
     txt = re.sub(u'[a-zA-z]+', match_en, txt)
     txt = re.sub(u'[0-9]+\*+[0-9]+|[0-9]+|\*\*\*', match_num, txt)
     txt = re.sub(u'[\u4e00-\u9fa5]+', ' #CH ', txt)
     txt = re.sub('\s+', ' ', txt)
+    txt = ' '.join([ps.stem(x) for x in txt.split()])
     return txt
 
 for line in sys.stdin:
