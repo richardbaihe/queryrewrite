@@ -78,6 +78,17 @@ head -n ${line} ${PREFIX_PATH}/temp/query.unk.B >${PREFIX_PATH}/rl/train.unk.B
 tail -n 8000 ${PREFIX_PATH}/temp/query.unk.A >${PREFIX_PATH}/rl/dev.unk.A
 tail -n 8000 ${PREFIX_PATH}/temp/query.unk.B >${PREFIX_PATH}/rl/dev.unk.B
 cp ${PREFIX_PATH}/outputs/vocab.txt ${PREFIX_PATH}/rl/vocab.txt
+
+head -n ${line} ${PREFIX_PATH}/inputs/entity.txt >${PREFIX_PATH}/outputs/train.entity
+tail -n 8000 ${PREFIX_PATH}/inputs/entity.txt >${PREFIX_PATH}/outputs/dev.entity
+
+head -n ${line} ${PREFIX_PATH}/inputs/ans_type.txt >${PREFIX_PATH}/outputs/train.ans_type
+tail -n 8000 ${PREFIX_PATH}/inputs/ans_type.txt >${PREFIX_PATH}/outputs/dev.ans_type
+
+head -n ${line} ${PREFIX_PATH}/inputs/label.txt >${PREFIX_PATH}/outputs/train.label
+tail -n 8000 ${PREFIX_PATH}/inputs/label.txt >${PREFIX_PATH}/outputs/dev.label
+
 echo "finished"
+
 
 

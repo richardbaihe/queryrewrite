@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 PREFIX_PATH=$(cd `dirname $0`; pwd)
-model=pretrain
+model=rl
 
 cd ${PREFIX_PATH}/tensor2tensor/bin &&
 ./t2t-datagen \
