@@ -22,7 +22,7 @@ cd ${PREFIX_PATH}/tensor2tensor/bin &&
 --output_dir=${PREFIX_PATH}/tensor2tensor/${model} \
 --keep_checkpoint_max=5 \
 --save_checkpoints_steps=500 \
---local_eval_frequency=1000
+--local_eval_frequency=1000 \
 --decode_beam_size=1 \
 --decode_batch_size=1024 \
 --decode_alpha=1.0 \
