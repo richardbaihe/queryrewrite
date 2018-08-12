@@ -149,7 +149,7 @@ if __name__ == '__main__':
     f_api = open('query_A.log.MY','r+',encoding='utf-8')
     previous = f_api.readlines()[-1].split()[0]
     #f_api.write('log_ans_type\tlog_ans\n')
-     for index,line in enumerate(open('D:/queryrewrite/inputs/query_A', 'r', encoding='utf-8')):
+    for index,line in enumerate(open('D:/queryrewrite/inputs/query_A', 'r', encoding='utf-8')):
         line = line.strip()
         if index<=int(previous):
             continue
