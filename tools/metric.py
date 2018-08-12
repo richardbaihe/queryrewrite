@@ -4,22 +4,25 @@ import os
 import math
 import operator
 from functools import reduce
+import pandas as pd
 import json
 
 
 def fetch_data(cand, ref):
     """ Store each reference and candidate sentences as a list """
-    references = []
-    if '.txt' in ref:
-        reference_file = codecs.open(ref, 'r', 'utf-8')
-        references.append(reference_file.readlines())
-    else:
-        for root, dirs, files in os.walk(ref):
-            for f in files:
-                reference_file = codecs.open(os.path.join(root, f), 'r', 'utf-8')
-                references.append(reference_file.readlines())
+    # references = []
+    # if '.txt' in ref:
+    #     reference_file = codecs.open(ref, 'r', 'utf-8')
+    #     references.append(reference_file.readlines())
+    # else:
+    #     for root, dirs, files in os.walk(ref):
+    #         for f in files:
+    #             reference_file = codecs.open(os.path.join(root, f), 'r', 'utf-8')
+    #             references.append(reference_file.readlines())
     candidate_file = codecs.open(cand, 'r', 'utf-8')
     candidate = candidate_file.readlines()
+    references_file = codecs.open(ref, 'r', 'utf-8')
+    references = references_file.readlines()
     return candidate, references
 
 
@@ -114,15 +117,56 @@ def BLEU(candidate, references):
         precisions.append(pr)
     bleu = geometric_mean(precisions) * bp
     return bleu
-
+def ENTITY(candidate, references):
+    ans = 0
+    total = 0
+    for c,r in zip(candidate,references):
+        r = r.strip().strip("\"").split(',')
+        if r ==['']:
+            continue
+        else:
+            total+=1
+        for entity in r:
+            if entity in c:
+                ans+=1
+                break
+    return ans/total
+def ANSTYPE(candidate,references):
+    ans = 0
+    total = 0
+    for c,r in zip(candidate,references):
+        total+=1
+        if c ==r.strip():
+            ans+=1
+    return ans/total
+def SUCCESS(candidate,references):
+    ans = 0
+    total = 0
+    for c,r in zip(candidate,references):
+        total+=1
+        if c ==r.strip():
+            ans+=1
+    return ans/total
 
 if __name__ == "__main__":
-    ref_text = '../'
-    candidate, references = fetch_data(sys.argv[1], ref_text)
-    # BLEU
-    bleu = BLEU(candidate, references)
-    print(bleu)
+    ref_text = '../outputs/query.unk.B'
+    ref_entity = '../inputs/entity.txt'
+    ref_anstype = '../inputs/ans_type.txt'
+    ref_ans = '../inputs/ans.txt'
+    cand_query = '../outputs/query.unk.A'
+    # candidate, references = fetch_data(cand, ref_text)
+    # # BLEU
+    # bleu = BLEU(candidate, [references])
+    # print(bleu)
     # Entities
+    candidate, references = fetch_data(cand_query, ref_entity)
+    entity = ENTITY(candidate,references)
+    print(entity)
 
+    ans_chatlog = pd.read_csv('result.chatlog')
+    log_anstype = ans_chatlog['log_ans_type']
+    log_ans = ans_chatlog['log_ans']
     # Ans Type
+    anstype = ANSTYPE(log_anstype,codecs.open(ref_anstype, 'r', encoding='utf-8').readlines())
     # Success Rate
+    success_rate = SUCCESS(log_ans,ref_ans)
