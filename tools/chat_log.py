@@ -143,15 +143,15 @@ class ChatApi(object):
 
 if __name__ == '__main__':
     # api = ChatApi(1000362, 'app_code_gausscode_70', True)
-    token = '1b389a44c59a7c469c1ea6d948ba384add56ff57e7be366c50426c077b868620a0e8b3634ded568a29d503824efac1008f8c8fdb8cd520602716ee6687c184358ca1bcecdab929550a1d00b6231956a7e6f190a48627b3648ff5ecad4fd4bcf8c823c747e227884a35c1f78311da65fbab39e082e8c5ea12628a28bd364acbab'
+    token = '22d8daa7f3d457c92c2543aa72996fb0dd56ff57e7be366c50426c077b868620a0e8b3634ded568a29d503824efac1008f8c8fdb8cd520602716ee6687c184358ca1bcecdab929550a1d00b6231956a7e6f190a48627b3648ff5ecad4fd4bcf8c823c747e227884a35c1f78311da65fbab39e082e8c5ea12628a28bd364acbab'
     api = ChatApi(1011986, '1011986_gausscode_10159')
 
     f_api = open('query_A.log.MY','r+',encoding='utf-8')
-    previous = f_api.read()[-1].split()[0]
+    previous = f_api.readlines()[-1].split()[0]
     #f_api.write('log_ans_type\tlog_ans\n')
-    for index,line in enumerate(open('D:/queryrewrite/inputs/query_A', 'r', encoding='utf-8')):
+     for index,line in enumerate(open('D:/queryrewrite/inputs/query_A', 'r', encoding='utf-8')):
         line = line.strip()
-        if index<4806:
+        if index<=int(previous):
             continue
         #line = 'my order has been cancelled..how can i claim my refund?'
         ans = api.gauss_answer(line, token_id=token)
