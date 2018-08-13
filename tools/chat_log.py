@@ -64,7 +64,7 @@ class ChatApi(object):
             self.token = token_id
         self.print_uuid = print_uuid
 
-    def get_token(self,):
+    def get_token(self):
         # 获取对外的token
         token_url = "https://beebot.alibaba.com/auth/get_access_token?" \
                     "auth_vendor=ddg&expiresIn=86400&_input_charset=utf-8"
@@ -94,6 +94,7 @@ class ChatApi(object):
             "message": json.dumps(message),
         }
         url = "https://console-beebot.alibaba.com/robot/pivot?"
+        url = "https://pre-console-beebot.alibaba.com/robot/pivot?"
         #rsp = urlopen('https://console-beebot.alibaba.com/robot/pivot?message=%7B%22header%22%3A%7B%22querystring%22%3A%7B%22env%22%3A%22prod%22%2C%22token%22%3A%228ae027bc9a0148e169cf4f950904c019dd56ff57e7be366c50426c077b868620a0e8b3634ded568a29d503824efac1008f8c8fdb8cd520602716ee6687c184358ca1bcecdab929550a1d00b6231956a7e6f190a48627b3648ff5ecad4fd4bcf8c823c747e227884a35c1f78311da65fbab39e082e8c5ea12628a28bd364acbab%22%2C%22appId%22%3A%221011986%22%2C%22lang%22%3A%22null%22%2C%22from%22%3A%22dd%22%7D%2C%22memberType%22%3A%22normal%22%2C%22imsid%22%3A%229fe2fe8f6dab4f7caf9e5aaaf4a17208%22%2C%22appName%22%3A%22alixm%22%2C%22chatSequence%22%3A1%2C%22msglog%22%3A3%2C%22sessionId%22%3A%22%22%2C%22bizType%22%3Anull%2C%22showType%22%3A%22%22%2C%22robotCode%22%3A%221011986_gausscode_10159%22%2C%22qType%22%3A%22text%22%2C%22encryptedUserId%22%3A%22%22%2C%22tenantId%22%3A3%7D%2C%22type%22%3A%22text%22%2C%22subType%22%3A%22text%22%2C%22body%22%3A%22Order+Status%22%2C%22fromId%22%3A4046796941%2C%22fromName%22%3A%22%E7%99%BD%E8%B5%AB%22%7D&access_token=8ae027bc9a0148e169cf4f950904c019dd56ff57e7be366c50426c077b868620a0e8b3634ded568a29d503824efac1008f8c8fdb8cd520602716ee6687c184358ca1bcecdab929550a1d00b6231956a7e6f190a48627b3648ff5ecad4fd4bcf8c823c747e227884a35c1f78311da65fbab39e082e8c5ea12628a28bd364acbab&auth_vendor=dda&appId=1011986&_input_charset=utf-8')
         rsp = urlopen(url + urlencode(payload))
         json_rst = json.loads(rsp.read())
@@ -144,12 +145,13 @@ class ChatApi(object):
 if __name__ == '__main__':
     # api = ChatApi(1000362, 'app_code_gausscode_70', True)
     token = '22d8daa7f3d457c92c2543aa72996fb0dd56ff57e7be366c50426c077b868620a0e8b3634ded568a29d503824efac1008f8c8fdb8cd520602716ee6687c184358ca1bcecdab929550a1d00b6231956a7e6f190a48627b3648ff5ecad4fd4bcf8c823c747e227884a35c1f78311da65fbab39e082e8c5ea12628a28bd364acbab'
-    api = ChatApi(1011986, '1011986_gausscode_10159')
 
+    api = ChatApi(1011986, '1011986_gausscode_10159')
+    token = ChatApi.get_token()
     f_api = open('query_A.log.MY','r+',encoding='utf-8')
     previous = f_api.readlines()[-1].split()[0]
     #f_api.write('log_ans_type\tlog_ans\n')
-     for index,line in enumerate(open('D:/queryrewrite/inputs/query_A', 'r', encoding='utf-8')):
+    for index,line in enumerate(open('D:/queryrewrite/inputs/query_A', 'r', encoding='utf-8')):
         line = line.strip()
         if index<=int(previous):
             continue

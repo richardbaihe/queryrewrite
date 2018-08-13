@@ -396,34 +396,43 @@ class T2TModel(object):
             decode_length=50,
             last_position_only=False,
             skip=False):
-    def slot_miss_percent(predictions,labels):
-      dict2num = [78003 + x for x in range(len(open('./oov.en', 'rU').readlines()))]
-      padded_predictions, padded_labels = common_layers.pad_with_zeros(
-        predictions, labels)
-      # weights = common_layers.weights_nonzero(padded_labels)
-      scores = []
-      total = []
-      for word in dict2num:
-        label_word = tf.ones_like(padded_labels-5000) * word  # batch*len*1*1
-        label_mask = tf.to_int32(tf.equal(padded_labels-5000, label_word))
-        outputs = tf.to_int32(tf.argmax(padded_predictions, axis=-1))
-        axis = list(range(1, len(outputs.get_shape())))
-        outputs_word = tf.ones_like(outputs) * word  # batch*len*1*1
-        outputs_mask = tf.to_int32(tf.equal(outputs, outputs_word))
-        oov_ouputs_nums = tf.reduce_sum(outputs_mask, axis=axis)
-        oov_label_nums = tf.reduce_sum(label_mask, axis=axis)
-        temp = tf.subtract(oov_label_nums, oov_ouputs_nums)
-        total.append(tf.cast(oov_label_nums, dtype=tf.float64))
-        scores.append(tf.div(tf.cast(temp + tf.abs(temp), dtype=tf.float64), tf.convert_to_tensor(np.array(2.0))))
-      return tf.to_float(tf.div(tf.add_n(scores), tf.add_n(total)))
+    def entity_keep(predictions,labels,entities):
+      # dict2num = [78003 + x for x in range(len(open('./oov.en', 'rU').readlines()))]
+      padded_predictions, padded_labels = common_layers.pad_with_zeros(predictions, labels)
+      entities = tf.tile(entities,[1,1,tf.shape(padded_predictions)[1],1]) # batch num_enti len 1
+
+      outputs = tf.to_int32(tf.argmax(padded_predictions, axis=-1))
+      outputs = tf.transpose(outputs,perm=[0,2,1,3]) #batch 1 len 1
+      outputs = tf.tile(outputs, [1, tf.shape(entities)[1], 1, 1]) # batch num_enti len 1
+
+      axis = list(range(1, len(outputs.get_shape())))
+      outputs_mask = tf.to_int32(tf.equal(outputs, entities))
+      oov_ouputs_nums = tf.sign(tf.reduce_sum(outputs_mask, axis=axis))
+      oov_entities_nums = tf.sign(tf.reduce_sum(entities+1, axis=axis))
+      total = tf.cast(oov_entities_nums, dtype=tf.float64)
+      scores = tf.cast(tf.subtract(oov_entities_nums, oov_ouputs_nums),dtype=tf.float64)
+      return tf.to_float(tf.div(scores, total))
+
+      # label_word = tf.ones_like(padded_labels-5000) * word  # batch*len*1*1
+      # label_mask = tf.to_int32(tf.equal(padded_labels-5000, label_word))
+      # outputs = tf.to_int32(tf.argmax(padded_predictions, axis=-1))
+      # axis = list(range(1, len(outputs.get_shape())))
+      # outputs_word = tf.ones_like(outputs) * word  # batch*len*1*1
+      # outputs_mask = tf.to_int32(tf.equal(outputs, outputs_word))
+      # oov_ouputs_nums = tf.reduce_sum(outputs_mask, axis=axis)
+      # oov_label_nums = tf.reduce_sum(label_mask, axis=axis)
+      # temp = tf.subtract(oov_label_nums, oov_ouputs_nums)
+      # total.append(tf.cast(oov_label_nums, dtype=tf.float64))
+      # scores.append(tf.div(tf.cast(temp + tf.abs(temp), dtype=tf.float64), tf.convert_to_tensor(np.array(2.0))))
+      # return tf.to_float(tf.div(tf.add_n(scores), tf.add_n(total)))
     new_features = features.copy()
-    new_features['inputs'] = features['sc_inputs']
+    #new_features['inputs'] = features['sc_inputs']
     self._hparams.sampling_method ="random"
     sample_result = self._greedy_infer(features, decode_length, last_position_only)
     self._hparams.sampling_method = "argmax"
     greedy_result = self._greedy_infer(features, decode_length, last_position_only)
-    reward = slot_miss_percent(sample_result,features['inputs'])
-    baseline = slot_miss_percent(greedy_result,features['inputs'])
+    reward = entity_keep(sample_result,features['inputs'],features['sc_inputs'])
+    baseline = entity_keep(greedy_result,features['inputs'],features['sc_inputs'])
     new_features["targets"] = sample_result
     sharded_logits, training_loss, extra_loss = self.model_fn(new_features,skip=skip,reduce_sum=False)
     rl_loss = tf.multiply(tf.reduce_sum(training_loss,axis=list(range(1, len(training_loss.get_shape())))),tf.maximum(tf.zeros(tf.shape(reward),dtype=tf.float32),baseline-reward))
