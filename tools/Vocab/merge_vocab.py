@@ -23,7 +23,7 @@ for line in vocab_a:
 vocab_b = open(args.vocab_b,'r',encoding='utf-8').readlines()
 for line in vocab_b:
     word,num = line.strip().split()
-    if len(vocab) > 20000 or int(num) < 10:
+    if len(vocab) > 30000 or int(num) < 10:
         break
     vocab[word] = num
 

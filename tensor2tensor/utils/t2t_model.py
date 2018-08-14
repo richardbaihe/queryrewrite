@@ -396,19 +396,33 @@ class T2TModel(object):
             decode_length=50,
             last_position_only=False,
             skip=False):
-    def entity_keep(predictions,labels,entities):
+    def entity_keep(predictions,labels,origin_entities):
       # dict2num = [78003 + x for x in range(len(open('./oov.en', 'rU').readlines()))]
       padded_predictions, padded_labels = common_layers.pad_with_zeros(predictions, labels)
-      entities = tf.tile(entities,[1,1,tf.shape(padded_predictions)[1],1]) # batch num_enti len 1
-
+      entities = tf.tile(origin_entities,[1,1,tf.shape(padded_predictions)[1],1]) # batch num_enti len 3
+      batch_size = tf.shape(entities)[0]
+      length_size = tf.shape(entities)[-2]
+      entities_size = tf.shape(entities)[-1]
+      entities = tf.transpose(entities,perm=[0,1,3,2]) # batch num_enti 3 len
       outputs = tf.to_int32(tf.argmax(padded_predictions, axis=-1))
-      outputs = tf.transpose(outputs,perm=[0,2,1,3]) #batch 1 len 1
-      outputs = tf.tile(outputs, [1, tf.shape(entities)[1], 1, 1]) # batch num_enti len 1
+      outputs = tf.transpose(outputs,perm=[0,2,3,1]) #batch 1 1 len
+      outputs = tf.tile(outputs, [1, tf.shape(entities)[1], entities_size, 1]) # batch num_enti 3 len
 
       axis = list(range(1, len(outputs.get_shape())))
       outputs_mask = tf.to_int32(tf.equal(outputs, entities))
-      oov_ouputs_nums = tf.sign(tf.reduce_sum(outputs_mask, axis=axis))
-      oov_entities_nums = tf.sign(tf.reduce_sum(entities+1, axis=axis))
+      outputs_nums = tf.sign(tf.reduce_sum(outputs_mask, axis=[-2])) # batch num_enti len
+      entity_sums = tf.reduce_sum(tf.sign(origin_entities),axis=[-1]) # batch num_enti
+
+      tri_diagonal = tf.eye(length_size,batch_shape=batch_size)
+      tri_diagonal = tri_diagonal + tf.manip.roll(tri_diagonal,shift=1,axis=1) + \
+                     tf.manip.roll(tri_diagonal, shift=2, axis=1)
+      tri_diagonal = tf.slice(tri_diagonal,[0,0,0],[batch_size,length_size,length_size-(entities_size-1)])
+
+      outputs_nums = tf.reduce_max(tf.matmul(outputs_nums, tri_diagonal),axis=-1)
+      outputs_mask = tf.to_int32(tf.equal(outputs_nums, entity_sums)) # batch num_enti
+
+      oov_ouputs_nums = tf.sign(tf.reduce_sum(outputs_mask, axis=-1))
+      oov_entities_nums = tf.sign(tf.reduce_sum(origin_entities+1, axis=axis))
       total = tf.cast(oov_entities_nums, dtype=tf.float64)
       scores = tf.cast(tf.subtract(oov_entities_nums, oov_ouputs_nums),dtype=tf.float64)
       return tf.to_float(tf.div(scores, total))
