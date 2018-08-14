@@ -149,6 +149,29 @@ def token_generator_3(sc_path,source_path, target_path, token_vocab_src, token_v
           target_ints = token_vocab_tgt.encode(target.strip()) + eos_list
           yield {"sc_inputs": sc_ints,"inputs": source_ints, "targets": target_ints}
           sc, source, target = sc_file.readline(), source_file.readline(), target_file.readline()
+def token_generator_4(sc_path,source_path, target_path, token_vocab_src, token_vocab_tgt, eos=None):
+  """Generator for sequence-to-sequence tasks that uses tokens.
+  """
+  eos_list = [] if eos is None else [eos]
+  with tf.gfile.GFile(source_path, mode="r") as source_file:
+    with tf.gfile.GFile(target_path, mode="r") as target_file:
+      with tf.gfile.GFile(sc_path, mode="r") as sc_file:
+  #source_file = codecs.open(source_path,"r","utf-8")
+  #target_file = open(target_path,"r")
+  #while True:
+        sc, source, target = sc_file.readline(), source_file.readline(), target_file.readline()
+        ##source = unicode(source,"utf8")
+        ##tf.logging.info(source)
+        #if not source or not target:
+        #    break
+        while source and target:
+          sc_ints = token_vocab_src.encode(sc.strip())
+          if sc_ints==[]:
+              sc_ints=[-1]
+          source_ints = token_vocab_src.encode(source.strip()) + eos_list
+          target_ints = token_vocab_tgt.encode(target.strip()) + eos_list
+          yield {"sc_inputs": sc_ints,"inputs": source_ints, "targets": target_ints}
+          sc, source, target = sc_file.readline(), source_file.readline(), target_file.readline()
 
 def _get_wmt_ende_dataset(directory, filename):
   """Extract the WMT en-de corpus `filename` to directory unless it's there."""
@@ -220,6 +243,17 @@ def paraphrase_generator(tmp_dir, train):
   token_vocab_src = text_encoder.TokenTextEncoder(vocab_filename=token_path_src)
   #return token_generator_3(sc_path,train_path + ".sc", train_path + ".tg", token_vocab_src, token_vocab_tgt, 1)
   return token_generator_para(train_path+'.A',train_path+'.B',token_vocab_src,1)
+
+def paraphrase_generator_rl(tmp_dir, train):
+  """Instance of token generator for the WMT en->de task, training set."""
+  dataset_path = ("train.unk"
+                  if train else "dev.unk")
+  train_path = _get_paraphrase_dataset(tmp_dir, dataset_path)
+  sc_path = os.path.join(tmp_dir, 'entity.txt')
+  token_path_src = os.path.join(tmp_dir, "vocab.txt")
+  token_vocab_src = text_encoder.TokenTextEncoder(vocab_filename=token_path_src)
+  return token_generator_4(sc_path, train_path + ".A", train_path + ".B", token_vocab_src, token_vocab_src, 1)
+  #return token_generator_para(train_path+'.A',train_path+'.B',token_vocab_src,1)
 
 
 _ENDE_TRAIN_DATASETS = [
