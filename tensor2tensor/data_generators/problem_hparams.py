@@ -418,7 +418,7 @@ def wmt_enfr_tokens(model_hparams, wrong_vocab_size):
 def paraphrase_pretrain(model_hparams):
   """English to German translation benchmark."""
   p = default_problem_hparams()
-  vocab_size = 31002 ## 40960
+  vocab_size = 21002 ## 40960
   # vocab_size = 40960
   modality_spec = (registry.Modalities.SYMBOL, vocab_size)
   p.input_modality = {"inputs": modality_spec}

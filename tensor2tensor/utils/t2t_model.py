@@ -404,7 +404,7 @@ class T2TModel(object):
       length_size = tf.shape(entities)[-2]
       entities_size = tf.shape(entities)[-1]
       entities = tf.transpose(entities,perm=[0,1,3,2]) # batch num_enti 3 len
-      outputs = tf.to_int32(tf.argmax(padded_predictions, axis=-1))
+      outputs = tf.expand_dims(tf.to_int32(tf.argmax(padded_predictions, axis=-1)),-1)
       outputs = tf.transpose(outputs,perm=[0,2,3,1]) #batch 1 1 len
       outputs = tf.tile(outputs, [1, tf.shape(entities)[1], entities_size, 1]) # batch num_enti 3 len
 
