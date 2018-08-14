@@ -166,7 +166,7 @@ def token_generator_4(sc_path,source_path, target_path, token_vocab_src, token_v
         #    break
         while source and target:
           sc_ints = []
-          for ssc in sc.strip.split(','):
+          for ssc in sc.strip().split(','):
             sc_int = token_vocab_src.encode(ssc)
             while len(sc_int) <4:
               sc_int.append(-1)
