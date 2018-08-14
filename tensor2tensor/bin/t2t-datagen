@@ -48,12 +48,12 @@ from tensor2tensor.data_generators import wmt
 flags = tf.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("data_dir", "", "Data directory.")
-flags.DEFINE_string("tmp_dir", "/tmp/t2t_datagen",
+flags.DEFINE_string("data_dir", "/Users/crluser/Downloads/query_rewrite/pretrain", "Data directory.")
+flags.DEFINE_string("tmp_dir", "/Users/crluser/Downloads/query_rewrite/pretrain",
                     "Temporary storage directory.")
-flags.DEFINE_string("problem", "",
+flags.DEFINE_string("problem", "paraphrase_pretrain",
                     "The name of the problem to generate data for.")
-flags.DEFINE_integer("num_shards", 10, "How many shards to use.")
+flags.DEFINE_integer("num_shards", 1, "How many shards to use.")
 flags.DEFINE_integer("max_cases", 0,
                      "Maximum number of cases to generate (unbounded if 0).")
 flags.DEFINE_integer("random_seed", 429459, "Random seed to use.")

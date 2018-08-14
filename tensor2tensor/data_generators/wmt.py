@@ -165,9 +165,14 @@ def token_generator_4(sc_path,source_path, target_path, token_vocab_src, token_v
         #if not source or not target:
         #    break
         while source and target:
-          sc_ints = token_vocab_src.encode(sc.strip())
-          if sc_ints==[]:
-              sc_ints=[-1]
+          sc_ints = []
+          for ssc in sc.strip.split(','):
+            sc_int = token_vocab_src.encode(ssc)
+            while len(sc_int) <4:
+              sc_int.append(-1)
+            sc_ints.extend(sc_int)
+          while len(sc_ints) < 4:
+              sc_ints.append(-1)
           source_ints = token_vocab_src.encode(source.strip()) + eos_list
           target_ints = token_vocab_tgt.encode(target.strip()) + eos_list
           yield {"sc_inputs": sc_ints,"inputs": source_ints, "targets": target_ints}

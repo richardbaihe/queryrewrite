@@ -53,7 +53,7 @@ IMAGE_DECODE_LENGTH = 100
 
 flags = tf.flags
 FLAGS = flags.FLAGS
-flags.DEFINE_bool("self_critical", False,'rl')
+flags.DEFINE_bool("self_critical", True,'rl')
 flags.DEFINE_bool("registry_help", False,
                   "If True, logs the contents of the registry and exits.")
 flags.DEFINE_string("output_dir", "/Users/crluser/Downloads/query_rewrite/tensor2tensor/pretrain", "Base output directory for run.")
@@ -61,7 +61,7 @@ flags.DEFINE_string("model", "transformer", "Which model to use.")
 flags.DEFINE_string("hparams_set", "transformer_paraphrase_small", "Which parameters to use.")
 flags.DEFINE_string("hparams_range", "", "Parameters range.")
 flags.DEFINE_string(
-    "hparams", "batch_size=64",
+    "hparams", "batch_size=128",
     """A comma-separated list of `name=value` hyperparameter values. This flag
     is used to override hyperparameter settings either when manually selecting
     hyperparameters or when using Vizier. If a hyperparameter setting is
@@ -69,7 +69,7 @@ flags.DEFINE_string(
     model.""")
 flags.DEFINE_string("problems", "paraphrase_pretrain", "Dash separated list of problems to "
                     "solve.")
-flags.DEFINE_string("data_dir", "/Users/crluser/Downloads/query_rewrite/tensor2tensor/pretrain", "Directory with training data.")
+flags.DEFINE_string("data_dir", "/Users/crluser/Downloads/query_rewrite/pretrain", "Directory with training data.")
 flags.DEFINE_integer("train_steps", 1000,
                      "The number of steps to run training for.")
 flags.DEFINE_integer("eval_steps", 2, "Number of steps in evaluation.")
@@ -1140,6 +1140,8 @@ def get_input_fn(mode,
         # Use the inputs as the targets if the problem is a copy problem.
         if hparams.problems[n].was_copy:
           feature_map["targets"] = feature_map["inputs"]
+
+        feature_map["sc_inputs"] = tf.reshape(feature_map["sc_inputs"],[tf.shape(feature_map["sc_inputs"])[0],-1,4])
 
         # Ensure inputs and targets are proper rank.
         while len(feature_map["inputs"].get_shape()) != 4:
