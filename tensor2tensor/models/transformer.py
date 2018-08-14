@@ -330,7 +330,6 @@ def transformer_paraphrase_small():
   #hparams.hidden_size = 512
   #hparams.filter_size = 2048
   #hparams.num_heads = 8
-  hparams.learning_rate_warmup_steps = 1000
   hparams.num_hidden_layers = 3
   hparams.batching_mantissa_bits = 3
   hparams.residual_dropout = 0.1

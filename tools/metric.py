@@ -115,6 +115,7 @@ def BLEU(candidate, references):
     for i in range(4):
         pr, bp = count_ngram(candidate, references, i + 1)
         precisions.append(pr)
+        print(pr)
     bleu = geometric_mean(precisions) * bp
     return bleu
 def ENTITY(candidate, references):
@@ -149,15 +150,15 @@ def SUCCESS(candidate,references):
     return ans/total
 
 if __name__ == "__main__":
-    ref_text = '../outputs/query.unk.B'
+    ref_text = '../adapt/dev.unk.B'
     ref_entity = '../inputs/entity.txt'
     ref_anstype = '../inputs/ans_type.txt'
     ref_ans = '../inputs/ans.txt'
-    cand_query = '../outputs/query.unk.A'
-    # candidate, references = fetch_data(cand, ref_text)
-    # # BLEU
-    # bleu = BLEU(candidate, [references])
-    # print(bleu)
+    cand_query = '../adapt/result.txt'
+    candidate, references = fetch_data(cand_query, ref_text)
+    # BLEU
+    bleu = BLEU(candidate, [references])
+    print(bleu)
     # Entities
     candidate, references = fetch_data(cand_query, ref_entity)
     entity = ENTITY(candidate,references)

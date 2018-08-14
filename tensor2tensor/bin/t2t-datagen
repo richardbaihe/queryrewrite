@@ -64,6 +64,9 @@ _SUPPORTED_PROBLEM_GENERATORS = {
     "paraphrase_pretrain": (
         lambda: wmt.paraphrase_generator(FLAGS.tmp_dir, True),
         lambda: wmt.paraphrase_generator(FLAGS.tmp_dir, False)),
+    "paraphrase_rl_entity": (
+        lambda: wmt.paraphrase_generator_rl(FLAGS.tmp_dir,True),
+        lambda: wmt.paraphrase_generator_rl(FLAGS.tmp_dir, False)),
     "algorithmic_identity_binary40": (
         lambda: algorithmic.identity_generator(2, 40, 100000),
         lambda: algorithmic.identity_generator(2, 400, 10000)),
