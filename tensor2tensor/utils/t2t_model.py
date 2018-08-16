@@ -399,46 +399,29 @@ class T2TModel(object):
     def entity_keep(predictions,labels,origin_entities):
       # dict2num = [78003 + x for x in range(len(open('./oov.en', 'rU').readlines()))]
       padded_predictions, padded_labels = common_layers.pad_with_zeros(predictions, labels)
-      entities = tf.tile(origin_entities,[1,1,tf.shape(padded_predictions)[1],1]) # batch num_enti len 3
+      entities = tf.transpose(origin_entities,perm=[0,1,3,2]) # batch num_enti 3 1
       batch_size = tf.shape(entities)[0]
-      length_size = tf.shape(entities)[-2]
-      entities_size = tf.shape(entities)[-1]
-      entities = tf.transpose(entities,perm=[0,1,3,2]) # batch num_enti 3 len
+      entities_size = tf.shape(entities)[2]
+
       outputs = tf.expand_dims(tf.to_int32(tf.argmax(padded_predictions, axis=-1)),-1)
       outputs = tf.transpose(outputs,perm=[0,2,3,1]) #batch 1 1 len
-      outputs = tf.tile(outputs, [1, tf.shape(entities)[1], entities_size, 1]) # batch num_enti 3 len
+      neg_1 = tf.constant(-10,shape=[batch_size,entities_size,1,1])
+      outputs = tf.concat([outputs, tf.concat([outputs[:,:,:,1:],neg_1],axis=-1), tf.concat([outputs[:,:,:,2:],neg_1,neg_1],axis=-1)], axis=2)
+      outputs = tf.tile(outputs, [1, tf.shape(entities)[1], 1, 1]) # batch num_enti 3 len
 
-      axis = list(range(1, len(outputs.get_shape())))
-      outputs_mask = tf.to_int32(tf.equal(outputs, entities))
-      outputs_nums = tf.sign(tf.reduce_sum(outputs_mask, axis=[-2])) # batch num_enti len
-      entity_sums = tf.reduce_sum(tf.sign(origin_entities),axis=[-1]) # batch num_enti
+      entities = tf.tile(entities,[1,1,1,tf.shape(outputs)[-1]]) # batch num_enti 3 len
 
-      tri_diagonal = tf.eye(length_size,batch_shape=batch_size)
-      tri_diagonal = tri_diagonal + tf.manip.roll(tri_diagonal,shift=1,axis=1) + \
-                     tf.manip.roll(tri_diagonal, shift=2, axis=1)
-      tri_diagonal = tf.slice(tri_diagonal,[0,0,0],[batch_size,length_size,length_size-(entities_size-1)])
+      entities_sum = tf.to_int32(tf.reduce_sum(tf.sign(entities+1),axis=-2)) # batch num_enti len
+      outputs_mask = tf.to_int32(tf.equal(outputs, entities)) # batch num_enti 3 len
+      outputs_sum = tf.reduce_sum(outputs_mask,axis=-2) # batch num_enti len
+      outputs_mask = tf.to_int32(tf.equal(outputs_sum, entities_sum))
 
-      outputs_nums = tf.reduce_max(tf.matmul(outputs_nums, tri_diagonal),axis=-1)
-      outputs_mask = tf.to_int32(tf.equal(outputs_nums, entity_sums)) # batch num_enti
-
-      oov_ouputs_nums = tf.sign(tf.reduce_sum(outputs_mask, axis=-1))
-      oov_entities_nums = tf.sign(tf.reduce_sum(origin_entities+1, axis=axis))
+      oov_ouputs_nums = tf.sign(tf.reduce_sum(outputs_mask, axis=[1,2]))
+      oov_entities_nums = tf.sign(tf.reduce_sum(origin_entities+1, axis=[1,2,3]))
       total = tf.cast(oov_entities_nums, dtype=tf.float64)
       scores = tf.cast(tf.subtract(oov_entities_nums, oov_ouputs_nums),dtype=tf.float64)
       return tf.to_float(tf.div(scores, total))
 
-      # label_word = tf.ones_like(padded_labels-5000) * word  # batch*len*1*1
-      # label_mask = tf.to_int32(tf.equal(padded_labels-5000, label_word))
-      # outputs = tf.to_int32(tf.argmax(padded_predictions, axis=-1))
-      # axis = list(range(1, len(outputs.get_shape())))
-      # outputs_word = tf.ones_like(outputs) * word  # batch*len*1*1
-      # outputs_mask = tf.to_int32(tf.equal(outputs, outputs_word))
-      # oov_ouputs_nums = tf.reduce_sum(outputs_mask, axis=axis)
-      # oov_label_nums = tf.reduce_sum(label_mask, axis=axis)
-      # temp = tf.subtract(oov_label_nums, oov_ouputs_nums)
-      # total.append(tf.cast(oov_label_nums, dtype=tf.float64))
-      # scores.append(tf.div(tf.cast(temp + tf.abs(temp), dtype=tf.float64), tf.convert_to_tensor(np.array(2.0))))
-      # return tf.to_float(tf.div(tf.add_n(scores), tf.add_n(total)))
     new_features = features.copy()
     #new_features['inputs'] = features['sc_inputs']
     self._hparams.sampling_method ="random"
