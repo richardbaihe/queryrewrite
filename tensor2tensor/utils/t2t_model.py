@@ -398,11 +398,11 @@ class T2TModel(object):
             skip=False):
     def entity_keep(predictions,labels,origin_entities):
       # dict2num = [78003 + x for x in range(len(open('./oov.en', 'rU').readlines()))]
-      padded_predictions, padded_labels = common_layers.pad_with_zeros(predictions, labels)
+      padded_predictions, padded_labels = common_layers.pad_with_zeros(predictions, labels) #batch len 1 1
       entities = origin_entities # batch num_enti 3 1
       batch_size = tf.shape(entities)[0]
 
-      outputs = tf.expand_dims(tf.to_int32(tf.argmax(padded_predictions, axis=-1)),-1)
+      outputs = padded_predictions #tf.expand_dims(tf.to_int32(tf.argmax(padded_predictions, axis=-1)),-1)
       outputs = tf.transpose(outputs,perm=[0,2,3,1]) #batch 1 1 len
       neg_1 = tf.fill([batch_size,1,1,1],-10) # batch 1 1 1
       outputs = tf.concat([outputs,
