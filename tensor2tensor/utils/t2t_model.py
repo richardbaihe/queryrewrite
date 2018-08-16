@@ -399,13 +399,16 @@ class T2TModel(object):
     def entity_keep(predictions,labels,origin_entities):
       # dict2num = [78003 + x for x in range(len(open('./oov.en', 'rU').readlines()))]
       padded_predictions, padded_labels = common_layers.pad_with_zeros(predictions, labels)
-      entities = tf.transpose(origin_entities,perm=[0,1,3,2]) # batch num_enti 3 1
+      entities = origin_entities # batch num_enti 3 1
       batch_size = tf.shape(entities)[0]
 
       outputs = tf.expand_dims(tf.to_int32(tf.argmax(padded_predictions, axis=-1)),-1)
       outputs = tf.transpose(outputs,perm=[0,2,3,1]) #batch 1 1 len
       neg_1 = tf.fill([batch_size,1,1,1],-10) # batch 1 1 1
-      outputs = tf.concat([outputs, tf.concat([outputs[:,:,:,1:],neg_1],axis=-1), tf.concat([outputs[:,:,:,2:],neg_1,neg_1],axis=-1)], axis=2)
+      outputs = tf.concat([outputs,
+                           tf.concat([outputs[:,:,:,1:],neg_1],axis=-1),
+                           tf.concat([outputs[:,:,:,2:],neg_1,neg_1],axis=-1),
+                           tf.concat([outputs[:,:,:,3:],neg_1,neg_1,neg_1],axis=-1)], axis=2)
       outputs = tf.tile(outputs, [1, tf.shape(entities)[1], 1, 1]) # batch num_enti 3 len
 
       entities = tf.tile(entities,[1,1,1,tf.shape(outputs)[-1]]) # batch num_enti 3 len
@@ -421,19 +424,23 @@ class T2TModel(object):
       scores = tf.cast(tf.subtract(oov_entities_nums, oov_ouputs_nums),dtype=tf.float64)
       return tf.to_float(tf.div(scores, total))
 
-    new_features = features.copy()
-    #new_features['inputs'] = features['sc_inputs']
-    self._hparams.sampling_method ="random"
-    sample_result = self._greedy_infer(features, decode_length, last_position_only)
-    self._hparams.sampling_method = "argmax"
-    greedy_result = self._greedy_infer(features, decode_length, last_position_only)
-    reward = entity_keep(sample_result,features['inputs'],features['sc_inputs'])
-    baseline = entity_keep(greedy_result,features['inputs'],features['sc_inputs'])
-    new_features["targets"] = sample_result
-    sharded_logits, training_loss, extra_loss = self.model_fn(new_features,skip=skip,reduce_sum=False)
-    rl_loss = tf.multiply(tf.reduce_sum(training_loss,axis=list(range(1, len(training_loss.get_shape())))),tf.maximum(tf.zeros(tf.shape(reward),dtype=tf.float32),baseline-reward))
-    rl_loss=tf.reduce_sum(rl_loss)
-    return sharded_logits, rl_loss, extra_loss
+    # new_features = features.copy()
+    # #new_features['inputs'] = features['sc_inputs']
+    # self._hparams.sampling_method ="random"
+    # sample_result = self._greedy_infer(features, decode_length, last_position_only)
+    # self._hparams.sampling_method = "argmax"
+    # greedy_result = self._greedy_infer(features, decode_length, last_position_only)
+    # reward = entity_keep(sample_result,features['inputs'],features['sc_inputs'])
+    # baseline = entity_keep(greedy_result,features['inputs'],features['sc_inputs'])
+    # new_features["targets"] = sample_result
+    # sharded_logits, training_loss, extra_loss = self.model_fn(new_features,skip=skip,reduce_sum=False)
+    # rl_loss = tf.multiply(tf.reduce_sum(training_loss,axis=list(range(1, len(training_loss.get_shape())))),tf.maximum(tf.zeros(tf.shape(reward),dtype=tf.float32),baseline-reward))
+    # rl_loss=tf.reduce_sum(rl_loss)
+    # return sharded_logits, rl_loss, extra_loss
+    origin_entities = features['sc_inputs']
+    entities = tf.transpose(origin_entities, perm=[0, 1, 3, 2])  # batch num_enti 3 1
+    batch_size = tf.shape(entities)[0]
+
 
   def model_fn(self, features, skip=False, last_position_only=False, hparams=None, num=0, reduce_sum=True):
     """Computes the entire model and produces sharded logits and training loss.
