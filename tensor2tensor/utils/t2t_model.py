@@ -401,11 +401,10 @@ class T2TModel(object):
       padded_predictions, padded_labels = common_layers.pad_with_zeros(predictions, labels)
       entities = tf.transpose(origin_entities,perm=[0,1,3,2]) # batch num_enti 3 1
       batch_size = tf.shape(entities)[0]
-      entities_size = tf.shape(entities)[2]
 
       outputs = tf.expand_dims(tf.to_int32(tf.argmax(padded_predictions, axis=-1)),-1)
       outputs = tf.transpose(outputs,perm=[0,2,3,1]) #batch 1 1 len
-      neg_1 = tf.constant(-10,shape=[batch_size,entities_size,1,1])
+      neg_1 = tf.fill([batch_size,1,1,1],-10) # batch 1 1 1
       outputs = tf.concat([outputs, tf.concat([outputs[:,:,:,1:],neg_1],axis=-1), tf.concat([outputs[:,:,:,2:],neg_1,neg_1],axis=-1)], axis=2)
       outputs = tf.tile(outputs, [1, tf.shape(entities)[1], 1, 1]) # batch num_enti 3 len
 
