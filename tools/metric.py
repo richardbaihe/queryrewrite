@@ -1,7 +1,7 @@
 import sys
 import codecs
 import os
-import math
+import math,argparse
 import operator
 from functools import reduce
 import pandas as pd
@@ -141,33 +141,61 @@ def ANSTYPE(candidate,references):
             ans+=1
     return ans/total
 def SUCCESS(candidate,references):
+    import re
+    def tokenizer_char(txt):
+        def match_num(matched):
+            begin, end = matched.regs[0]
+            length = str(end - begin)
+            return ' #num' + length + ' '
+
+        def match_en(matched):
+            begin, end = matched.regs[0]
+            word = matched.string[begin:end]
+            if len(word) > 1:
+                return ' ' + word + ' '
+            else:
+                return ''
+
+        txt = txt.lower()
+        txt = re.sub(u'[!“\"#$%&\'()+,-./:;<=>?@[\]^_`{|}~，。！？、【】「」～]+', '', txt)
+        txt = re.sub(u'[a-zA-z]+', match_en, txt)
+        txt = re.sub(u'[\u4e00-\u9fa5]+', ' #CH ', txt)
+        txt = re.sub('\s+', ' ', txt)
+        return txt
     ans = 0
     total = 0
     for c,r in zip(candidate,references):
         total+=1
-        if c ==r.strip():
+        if tokenizer_char(c) ==tokenizer_char(r.strip()):
             ans+=1
     return ans/total
 
 if __name__ == "__main__":
-    ref_text = '../adapt/dev.unk.B'
-    ref_entity = '../inputs/entity.txt'
-    ref_anstype = '../inputs/ans_type.txt'
-    ref_ans = '../inputs/ans.txt'
-    cand_query = '../adapt/result.txt'
+    parse = argparse.ArgumentParser()
+    parse.add_argument('--input',type=str,default='../rl/result.txt')
+    args = parse.parse_args()
+    cand_query = args.input
+    ref_text = '../inputs/dev.unk.B'
+    ref_entity = '../inputs/dev.entity'
+    ref_anstype = '../inputs/dev.ans_type'
+    ref_ans = 'result/standard_ans.txt'
+    ans_chatlog = pd.read_csv('result/chatlog.pretrain.txt', sep='\t')
+    cand_query = 'result/pretrain.txt'
     candidate, references = fetch_data(cand_query, ref_text)
     # BLEU
     bleu = BLEU(candidate, [references])
     print(bleu)
-    # Entities
+    #Entities
     candidate, references = fetch_data(cand_query, ref_entity)
     entity = ENTITY(candidate,references)
-    print(entity)
+    print('entity:%4f' % entity)
 
-    ans_chatlog = pd.read_csv('result.chatlog')
+
     log_anstype = ans_chatlog['log_ans_type']
     log_ans = ans_chatlog['log_ans']
     # Ans Type
     anstype = ANSTYPE(log_anstype,codecs.open(ref_anstype, 'r', encoding='utf-8').readlines())
+    print('anstype:%4f' % anstype)
     # Success Rate
-    success_rate = SUCCESS(log_ans,ref_ans)
+    success_rate = SUCCESS(log_ans,codecs.open(ref_ans, 'r', encoding='utf-8').readlines())
+    print('success_rate:%4f' % success_rate)

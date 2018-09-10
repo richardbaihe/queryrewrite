@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 export CUDA_VISIBLE_DEVICES=1
 PREFIX_PATH=$(cd `dirname $0`; pwd)
-model=rl
-STEP=10100
+model=pretrain
+STEP=10000
 # self-critical?
-sc=True
+sc=False
 
 cd ${PREFIX_PATH}/tensor2tensor/bin &&
 #rm -rf ${PREFIX_PATH}/tensor2tensor/${model} &&

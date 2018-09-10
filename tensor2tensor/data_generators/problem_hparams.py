@@ -434,25 +434,6 @@ def paraphrase_pretrain(model_hparams):
   p.input_space_id = 4
   p.target_space_id = 9
   return p
-def paraphrase_pretrain(model_hparams):
-  """English to German translation benchmark."""
-  p = default_problem_hparams()
-  vocab_size = 21002 ## 40960
-  # vocab_size = 40960
-  modality_spec = (registry.Modalities.SYMBOL, vocab_size)
-  p.input_modality = {"inputs": modality_spec}
-  p.target_modality = modality_spec
-  # This vocab file must be present within the data directory.
-  vocab_filename_src = os.path.join(model_hparams.data_dir, "vocab.txt")
-  vocab_filename_tgt = os.path.join(model_hparams.data_dir, "vocab.txt")
-  p.vocabulary = {
-      "inputs": text_encoder.TokenTextEncoder(vocab_filename=vocab_filename_src),
-      "targets": text_encoder.TokenTextEncoder(vocab_filename=vocab_filename_tgt),
-  }
-  p.loss_multiplier = 1.4
-  p.input_space_id = 4
-  p.target_space_id = 9
-  return p
 
 def wmt_ende_bpe32k(model_hparams):
   """English to German translation benchmark."""
